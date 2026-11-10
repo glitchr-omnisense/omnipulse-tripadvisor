@@ -1,0 +1,47 @@
+{
+    "$schema": "https://github.com/glitchr-omnisense/contracts/blob/1.x/resources/usage-policy.schema.json",
+    "provider": "tripadvisor",
+    "rateLimits": [
+        {
+            "max": 50,
+            "window": "second",
+            "scope": "key",
+            "operations": [],
+            "note": "50 queries per second per key. The daily limit of location details, photos and reviews is \"determined by your daily budget\" (the account's): not a figure. The search APIs' 10,000 calls a day do not concern this provider (it calls location details and reviews)."
+        }
+    ],
+    "rights": {
+        "commercial": "unknown",
+        "openSourceRequired": null,
+        "caching": {
+            "permission": "forbidden",
+            "maxTtl": 0
+        },
+        "storage": "forbidden",
+        "redistribution": "forbidden",
+        "attribution": {
+            "required": true,
+            "text": "Tripadvisor",
+            "url": "https://www.tripadvisor.com/",
+            "where": [
+                "display"
+            ]
+        },
+        "licence": null
+    },
+    "requirements": {
+        "key": true,
+        "userAgent": {
+            "required": false,
+            "pattern": null
+        }
+    },
+    "provenance": {
+        "terms": "https://tripadvisor-content-api.readme.io/reference/terms-of-use",
+        "policy": "https://tripadvisor-content-api.readme.io/reference/caching-policy",
+        "verifiedAt": "2026-11-10",
+        "declaredBy": "maintainer",
+        "contact": null,
+        "notes": "Read on 2026-11-10. Caching policy: \"Caching, storing or indexing is not permitted for any content except Location ID attribute\" (location_id: unlimited): caching and storage forbidden. Terms (3.4.3): every display of Tripadvisor's content non-indexable by search engines, logos never stored nor served locally, content cached only as the Caching Policy permits; (3.4.2) a Tripadvisor mark with every use; (3.1.2, 3.5.2(a)) no sublicensing, no access given to third parties: redistribution forbidden. Display requirements (reference/display-requirements): the Ollie logo at least 20 px high beside a rating, the API's bubble ratings at least 55 px wide, a traveller's quote as \"a Tripadvisor traveler review\". Calls are billed against the account's budget (4.2); commercial use is not addressed: unknown. Rate limits: reference/rate-limits."
+    }
+}

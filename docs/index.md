@@ -162,3 +162,12 @@ An independent, unofficial client, not affiliated with Tripadvisor LLC. Whoever 
 with the Content API's terms ([Content API terms of
 use](https://tripadvisor-content-api.readme.io/reference/terms-of-use)): see the README's
 Responsibility section.
+
+## Usage policy
+
+Tripadvisor's usage policy is declared as data in [`policy.json`](policy.json) (omnisense/contracts'
+schema, named in `composer.json`'s `extra.omnisense.policy`), its terms read on
+2026-11-10 (https://tripadvisor-content-api.readme.io/reference/caching-policy): 50 calls a second per key (the daily budget is the account's); caching, storage and redistribution forbidden but the location ID (the Caching Policy); "Tripadvisor" credited on display, pages not indexed. omnipulse's registry enforces it - a call over a
+limit is never made, a 429 and its `Retry-After` hold every next call
+(`UsageLimitReachedException`) - and a site may tighten it, never loosen it
+(omnisense/omnipulse's docs/policies.md).

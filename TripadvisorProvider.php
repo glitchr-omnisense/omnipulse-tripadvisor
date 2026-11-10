@@ -15,6 +15,9 @@ use Omnipulse\RatingInterface;
 use Omnipulse\ReviewsInterface;
 use Omnipulse\Support\Data;
 use Omnipulse\WriteUrlInterface;
+use Omnisense\Contracts\Policy\Backoff;
+use Omnisense\Contracts\Policy\DeclaresUsagePolicyInterface;
+use Omnisense\Contracts\Policy\UsagePolicy;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
@@ -22,8 +25,13 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  * web_url, write_review, the bubbles' picture) and its reviews - up to five,
  * the most recent. The partner key in the query.
  */
-final class TripadvisorProvider implements RatingInterface, ReviewsInterface, WriteUrlInterface
+final class TripadvisorProvider implements RatingInterface, ReviewsInterface, WriteUrlInterface, DeclaresUsagePolicyInterface
 {
+    /** Tripadvisor's usage policy, as its terms read on the day it says (provenance.verifiedAt). */
+    public const POLICY = __DIR__.'/policy.json';
+
+    private static ?UsagePolicy $policy = null;
+
     public const URL = 'https://api.content.tripadvisor.com/api/v1/location/';
 
     /** @var array<string, Data> the details asked in this request, by location and language */
@@ -34,6 +42,7 @@ final class TripadvisorProvider implements RatingInterface, ReviewsInterface, Wr
         #[\SensitiveParameter] private readonly string $apiKey,
         private readonly string $language = 'en',
         private readonly ?string $referer = null,
+        private readonly ?Backoff $backoff = null,
     ) {
     }
 
@@ -47,9 +56,14 @@ final class TripadvisorProvider implements RatingInterface, ReviewsInterface, Wr
         return 'Tripadvisor';
     }
 
+    public function usagePolicy(): UsagePolicy
+    {
+        return self::$policy ??= UsagePolicy::fromFile(self::POLICY);
+    }
+
     public function capabilities(): Capabilities
     {
-        return new Capabilities(rating: true, reviews: true, reply: false, invite: false, writeUrl: true);
+        return new Capabilities(rating: true, reviews: true, reply: false, invite: false, writeUrl: true, policy: $this->usagePolicy());
     }
 
     public function terms(): Terms
@@ -113,7 +127,7 @@ final class TripadvisorProvider implements RatingInterface, ReviewsInterface, Wr
     /** @param array<string, mixed> $query */
     private function call(string $path, array $query): Data
     {
-        $answer = Answer::send($this->http, 'tripadvisor', 'GET', self::URL.$path, ['query' => ['key' => $this->apiKey] + $query, 'headers' => array_filter(['Accept' => 'application/json', 'Referer' => $this->referer])]);
+        $answer = Answer::send($this->http, 'tripadvisor', 'GET', self::URL.$path, ['query' => ['key' => $this->apiKey] + $query, 'headers' => array_filter(['Accept' => 'application/json', 'Referer' => $this->referer])], $this->backoff);
         $data = Data::of(json_decode($answer->body, true));
         $error = $data->raw('error') ?? $data->raw('Message');
         $details = Data::of($error);

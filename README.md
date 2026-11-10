@@ -27,6 +27,15 @@ verified in real: no key.**
 [Documentation](docs/index.md): the options, the calls, Tripadvisor's display rules, what was
 verified.
 
+## Usage policy
+
+Tripadvisor's usage policy is declared as data in [`policy.json`](policy.json) (omnisense/contracts'
+schema, named in `composer.json`'s `extra.omnisense.policy`), its terms read on
+2026-11-10 (https://tripadvisor-content-api.readme.io/reference/caching-policy): 50 calls a second per key (the daily budget is the account's); caching, storage and redistribution forbidden but the location ID (the Caching Policy); "Tripadvisor" credited on display, pages not indexed. omnipulse's registry enforces it - a call over a
+limit is never made, a 429 and its `Retry-After` hold every next call
+(`UsageLimitReachedException`) - and a site may tighten it, never loosen it
+(omnisense/omnipulse's docs/policies.md).
+
 ## Responsibility
 
 This package is an independent, unofficial client: it is not affiliated with, endorsed by or

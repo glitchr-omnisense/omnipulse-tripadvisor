@@ -35,6 +35,6 @@ final class TripadvisorFactory extends ProviderFactory
 
     protected function build(Config $c): ProviderInterface
     {
-        return new TripadvisorProvider($this->http ?? HttpClient::create(), (string) $c->string('api_key'), $c->string('language') ?? 'en', $c->string('referer'));
+        return new TripadvisorProvider($this->http ?? HttpClient::create(), (string) $c->string('api_key'), $c->string('language') ?? 'en', $c->string('referer'), $c->backoff());
     }
 }
