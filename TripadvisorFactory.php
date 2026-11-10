@@ -1,10 +1,10 @@
 <?php
 
-namespace Omnireview\Tripadvisor;
+namespace Omnipulse\Tripadvisor;
 
-use Omnireview\Config;
-use Omnireview\GatewayFactory;
-use Omnireview\GatewayInterface;
+use Omnipulse\Config;
+use Omnipulse\ProviderFactory;
+use Omnipulse\ProviderInterface;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -16,7 +16,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  *     language: fr                           # en by default
  *     referer: https://www.example.org/      # the Referer sent, for a key restricted to domains
  */
-final class TripadvisorGatewayFactory extends GatewayFactory
+final class TripadvisorFactory extends ProviderFactory
 {
     public function __construct(private readonly ?HttpClientInterface $http = null)
     {
@@ -25,16 +25,16 @@ final class TripadvisorGatewayFactory extends GatewayFactory
     protected function populate(Config $c): void
     {
         $c->defaults([
-            'omnireview.factory_name' => 'tripadvisor',
-            'omnireview.factory_title' => 'Tripadvisor',
-            'omnireview.required_options' => ['api_key'],
+            'omnipulse.factory_name' => 'tripadvisor',
+            'omnipulse.factory_title' => 'Tripadvisor',
+            'omnipulse.required_options' => ['api_key'],
             'language' => 'en',
             'referer' => null,
         ]);
     }
 
-    protected function build(Config $c): GatewayInterface
+    protected function build(Config $c): ProviderInterface
     {
-        return new TripadvisorGateway($this->http ?? HttpClient::create(), (string) $c['api_key'], $c->string('language') ?? 'en', $c->string('referer'));
+        return new TripadvisorProvider($this->http ?? HttpClient::create(), (string) $c->string('api_key'), $c->string('language') ?? 'en', $c->string('referer'));
     }
 }

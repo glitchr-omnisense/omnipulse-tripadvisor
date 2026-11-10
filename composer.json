@@ -1,14 +1,14 @@
 {
-    "name": "omnireview/tripadvisor",
+    "name": "omnipulse/tripadvisor",
     "type": "library",
-    "description": "Omnireview Tripadvisor: a location's rating, bubbles and up to five reviews through Tripadvisor's Content API, the link to write one; its display requirements declared - logo, bubbles from Tripadvisor's addresses, pages kept out of search engines.",
+    "description": "Omnipulse's Tripadvisor: a location's rating, bubbles and up to five reviews through Tripadvisor's Content API, the link to write one; its display requirements declared - logo, bubbles from Tripadvisor's addresses, pages kept out of search engines.",
     "keywords": [
         "reviews",
         "tripadvisor",
         "content-api",
-        "omnireview"
+        "omnipulse"
     ],
-    "homepage": "https://github.com/glitchr-omnisense/omnireview-tripadvisor",
+    "homepage": "https://github.com/glitchr-omnisense/omnipulse-tripadvisor",
     "license": "MIT",
     "authors": [
         {
@@ -18,15 +18,18 @@
     ],
     "require": {
         "php": ">=8.2",
-        "omnisense/omnireview": "^1.0@dev",
+        "omnisense/omnipulse": "^1.0@dev",
         "symfony/http-client": "^6.4|^7.0|^8.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^11.0"
     },
+    "replace": {
+        "omnireview/tripadvisor": "self.version"
+    },
     "autoload": {
         "psr-4": {
-            "Omnireview\\Tripadvisor\\": ""
+            "Omnipulse\\Tripadvisor\\": ""
         },
         "exclude-from-classmap": [
             "/Tests/"
@@ -34,7 +37,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Omnireview\\Tripadvisor\\Tests\\": "Tests/"
+            "Omnipulse\\Tripadvisor\\Tests\\": "Tests/"
         }
     },
     "config": {

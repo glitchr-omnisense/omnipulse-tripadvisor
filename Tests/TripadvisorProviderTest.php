@@ -1,24 +1,24 @@
 <?php
 
-namespace Omnireview\Tripadvisor\Tests;
+namespace Omnipulse\Tripadvisor\Tests;
 
-use Omnireview\Exception\InvalidKeyException;
-use Omnireview\Model\Place;
-use Omnireview\ReplyInterface;
-use Omnireview\Tripadvisor\TripadvisorGateway;
-use Omnireview\Tripadvisor\TripadvisorGatewayFactory;
+use Omnipulse\Exception\InvalidKeyException;
+use Omnipulse\Model\Place;
+use Omnipulse\ReplyInterface;
+use Omnipulse\Tripadvisor\TripadvisorProvider;
+use Omnipulse\Tripadvisor\TripadvisorFactory;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
 
 /** Answers written from the Content API's OpenAPI (details, reviews): no key was used. */
-final class TripadvisorGatewayTest extends TestCase
+final class TripadvisorProviderTest extends TestCase
 {
-    /** @var list<array{string, string, array<string, mixed>}> */
+    /** @var list<array{string, string, array<mixed>}> */
     private array $calls = [];
 
     /** @param list<string|MockResponse> $answers */
-    private function gateway(array $answers): TripadvisorGateway
+    private function provider(array $answers): TripadvisorProvider
     {
         $http = new MockHttpClient(function (string $method, string $url, array $options) use (&$answers): MockResponse {
             $this->calls[] = [$method, $url, $options];
@@ -30,28 +30,28 @@ final class TripadvisorGatewayTest extends TestCase
 
             return new MockResponse((string) file_get_contents(__DIR__.'/Fixtures/'.$file.'.json'), ['http_code' => (int) $status]);
         });
-        $gateway = (new TripadvisorGatewayFactory($http))->create(['api_key' => 'ta-key', 'language' => 'fr', 'referer' => 'https://www.maison-erable.example/']);
-        self::assertInstanceOf(TripadvisorGateway::class, $gateway);
+        $provider = (new TripadvisorFactory($http))->create(['api_key' => 'ta-key', 'language' => 'fr', 'referer' => 'https://www.maison-erable.example/']);
+        self::assertInstanceOf(TripadvisorProvider::class, $provider);
 
-        return $gateway;
+        return $provider;
     }
 
     public function testTheRatingWithItsBubblesAndTheLinkToWriteOneFromOneCall(): void
     {
-        $gateway = $this->gateway(['details']);
-        $rating = $gateway->rating(new Place('1234567'));
+        $provider = $this->provider(['details']);
+        $rating = $provider->rating(new Place('1234567'));
 
         self::assertSame([4.5, 312, 'https://www.tripadvisor.com/img/cdsi/img2/ratings/traveler/4.5-12345-5.svg'], [$rating->value, $rating->count, $rating->image]);
         self::assertStringStartsWith('https://www.tripadvisor.fr/Restaurant_Review', (string) $rating->url);
-        self::assertSame('https://www.tripadvisor.fr/UserReview-g187147-d1234567-Maison_Erable-Paris.html', $gateway->writeUrl(new Place('1234567')));
+        self::assertSame('https://www.tripadvisor.fr/UserReview-g187147-d1234567-Maison_Erable-Paris.html', $provider->writeUrl(new Place('1234567')));
         self::assertCount(1, $this->calls, 'the details asked once');
         self::assertSame('https://api.content.tripadvisor.com/api/v1/location/1234567/details?key=ta-key&language=fr', $this->calls[0][1]);
-        self::assertStringContainsString('Referer: https://www.maison-erable.example/', implode("\n", $this->calls[0][2]['headers']));
+        self::assertStringContainsString('Referer: https://www.maison-erable.example/', self::headers($this->calls[0][2]));
     }
 
     public function testReviewsUpToFive(): void
     {
-        $reviews = $this->gateway(['reviews'])->reviews(new Place('1234567'), 10);
+        $reviews = $this->provider(['reviews'])->reviews(new Place('1234567'), 10);
 
         self::assertSame('https://api.content.tripadvisor.com/api/v1/location/1234567/reviews?key=ta-key&language=fr&limit=5', $this->calls[0][1]);
         $review = $reviews[0];
@@ -62,13 +62,21 @@ final class TripadvisorGatewayTest extends TestCase
 
     public function testItsTermsAndARefusedKey(): void
     {
-        $gateway = $this->gateway(['error:401']);
-        self::assertTrue($gateway->terms()->noIndex);
-        self::assertNull($gateway->terms()->cacheFor, 'as Tripadvisor\'s caching policy allows: not published');
-        self::assertFalse($gateway->terms()->allowsCaching(1));
-        self::assertNotInstanceOf(ReplyInterface::class, $gateway);
+        $provider = $this->provider(['error:401']);
+        self::assertTrue($provider->terms()->noIndex);
+        self::assertNull($provider->terms()->cacheFor, 'as Tripadvisor\'s caching policy allows: not published');
+        self::assertFalse($provider->terms()->allowsCaching(1));
+        self::assertNotContains(ReplyInterface::class, class_implements($provider) ?: [], 'no reply on the Content API');
 
         $this->expectException(InvalidKeyException::class);
-        $gateway->rating(new Place('1234567'));
+        $provider->rating(new Place('1234567'));
+    }
+
+    /** @param array<mixed> $options a recorded request's options: its headers, one a line */
+    private static function headers(array $options): string
+    {
+        $headers = $options['headers'] ?? [];
+
+        return implode("\n", \is_array($headers) ? array_filter($headers, 'is_string') : []);
     }
 }

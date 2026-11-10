@@ -1,25 +1,25 @@
-# omnireview/tripadvisor
+# omnipulse/tripadvisor
 
-Tripadvisor for [omnisense/omnireview](https://github.com/glitchr-omnisense/omnireview): a
+Tripadvisor for [omnisense/omnipulse](https://github.com/glitchr-omnisense/omnipulse): a
 location's rating, its bubbles, its number of reviews, up to five reviews and the link to write
-one, through the **Tripadvisor Content API** (v1). The gateway calls:
+one, through the **Tripadvisor Content API** (v1). The provider calls:
 
 | Operation | Request |
 |---|---|
 | rating, write link | `GET https://api.content.tripadvisor.com/api/v1/location/{locationId}/details?key=&language=` |
 | reviews | `GET https://api.content.tripadvisor.com/api/v1/location/{locationId}/reviews?key=&language=&limit=` |
 
-The base address is the constant `TripadvisorGateway::URL`. The Content API has no sandbox.
+The base address is the constant `TripadvisorProvider::URL`. The Content API has no sandbox.
 Replying and inviting are not in the Content API.
 
 ## Installation
 
 ```sh
-composer require omnireview/tripadvisor
+composer require omnipulse/tripadvisor
 ```
 
-Requires PHP 8.2, `omnisense/omnireview` (1.x) and `symfony/http-client` (6.4, 7 or 8). In a
-Symfony application with `OmnireviewBundle`, the factory is registered as soon as the package is
+Requires PHP 8.2, `omnisense/omnipulse` (1.x) and `symfony/http-client` (6.4, 7 or 8). In a
+Symfony application with `OmnipulseBundle`, the factory is registered as soon as the package is
 installed.
 
 ## Credentials
@@ -45,16 +45,16 @@ installed.
 |---|---|
 | `RatingInterface` | yes |
 | `ReviewsInterface` | yes, 5 at most |
-| `ReplyInterface` | no (the gateway does not implement it) |
-| `InviteInterface` | no (the gateway does not implement it) |
+| `ReplyInterface` | no (the provider does not implement it) |
+| `InviteInterface` | no (the provider does not implement it) |
 | `WriteUrlInterface` | yes |
 
-`capabilities()->gives()`: `rating, reviews, write-url`.
+`capabilities()->contracts()`: `rating, reviews, writeUrl`.
 
 ## Behaviour
 
-**Details.** `rating()` and `writeUrl()` read the location's `/details` in the gateway's `language`,
-asked once per location and language for the gateway's lifetime (a PHP process, or a request in a
+**Details.** `rating()` and `writeUrl()` read the location's `/details` in the provider's `language`,
+asked once per location and language for the provider's lifetime (a PHP process, or a request in a
 long-running worker): a widget's rating and write link are one call.
 
 **Rating.** `value` is `rating`, `count` `num_reviews`, `url` `web_url`, `image` `rating_image_url`
@@ -98,11 +98,11 @@ application's.
 
 require __DIR__.'/vendor/autoload.php';
 
-use Omnireview\Model\Place;
-use Omnireview\Tripadvisor\TripadvisorGatewayFactory;
+use Omnipulse\Model\Place;
+use Omnipulse\Tripadvisor\TripadvisorFactory;
 use Symfony\Component\HttpClient\HttpClient;
 
-$tripadvisor = (new TripadvisorGatewayFactory(HttpClient::create()))->create([
+$tripadvisor = (new TripadvisorFactory(HttpClient::create()))->create([
     'api_key' => getenv('TRIPADVISOR_KEY'),
     'language' => 'fr',
     'referer' => 'https://www.maison-erable.example/',
@@ -120,8 +120,8 @@ echo $tripadvisor->writeUrl($location), "\n";      // no second call: the detail
 Not run live (no key). In Symfony:
 
 ```yaml
-omnireview:
-    gateways:
+omnipulse:
+    providers:
         tripadvisor:
             factory: tripadvisor
             options:
@@ -131,8 +131,8 @@ omnireview:
 ```
 
 ```twig
-{% if omnireview_terms('tripadvisor').noIndex %}<meta name="robots" content="noindex">{% endif %}
-{{ omnireview_widget('tripadvisor', location_id) }}
+{% if omnipulse_terms('tripadvisor').noIndex %}<meta name="robots" content="noindex">{% endif %}
+{{ omnipulse_reviews_widget('tripadvisor', location_id) }}
 ```
 
 ## Errors
@@ -144,11 +144,11 @@ omnireview:
 | no answer, a 5xx, a 429 | `UnreachableException` | the HTTP status |
 | a body that is not JSON | `ProviderException` | - |
 | no `write_review` | `ProviderException` | - |
-| no `api_key` | `InvalidConfigException` (`The "tripadvisor" gateway needs: api_key.`), when the gateway is built | - |
+| no `api_key` | `InvalidConfigException` (`The "tripadvisor" provider needs: api_key.`), when the provider is built | - |
 
 ## Verified, and not
 
-Tested offline (`Tests/TripadvisorGatewayTest.php`, on `MockHttpClient`): the rating with its
+Tested offline (`Tests/TripadvisorProviderTest.php`, on `MockHttpClient`): the rating with its
 bubbles and the write link from one details call, the query (`key`, `language`) and the
 `Referer`; the reviews with `limit=5`, their reply, author, title, date and own bubbles; the terms
 (`noIndex`, `cacheFor` `null`); a 401 as an `InvalidKeyException`. The answers in `Tests/Fixtures`

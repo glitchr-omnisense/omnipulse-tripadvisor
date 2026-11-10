@@ -1,19 +1,24 @@
-# omnireview/tripadvisor
+# omnipulse/tripadvisor
 
-**Tripadvisor** for [omnisense/omnireview](https://github.com/glitchr-omnisense/omnireview): a
+Formerly `omnireview/tripadvisor` (moved on 2026-11-10, when omnireview and omnifund merged into
+omnipulse: `Omnireview\Tripadvisor\` is now `Omnipulse\Tripadvisor\`, `TripadvisorGateway` is
+`TripadvisorProvider`, `TripadvisorGatewayFactory` is `TripadvisorFactory`; this package replaces
+the former name).
+
+**Tripadvisor** for [omnisense/omnipulse](https://github.com/glitchr-omnisense/omnipulse): a
 location's rating, its bubbles, its number of reviews, up to five reviews and the link to write
 one, through the Tripadvisor Content API.
 
 ```php
-use Omnireview\Model\Place;
-use Omnireview\Tripadvisor\TripadvisorGatewayFactory;
+use Omnipulse\Model\Place;
+use Omnipulse\Tripadvisor\TripadvisorFactory;
 
-$gateway = (new TripadvisorGatewayFactory($httpClient))->create(['api_key' => getenv('TRIPADVISOR_KEY'), 'language' => 'fr']);
+$provider = (new TripadvisorFactory($httpClient))->create(['api_key' => getenv('TRIPADVISOR_KEY'), 'language' => 'fr']);
 
 $location = new Place('1234567');                     // the location ID: it may be kept
-$gateway->rating($location);                          // 4.5 from 312, the bubbles' image, the location's page
-$gateway->reviews($location);                         // up to five
-$gateway->writeUrl($location);
+$provider->rating($location);                          // 4.5 from 312, the bubbles' image, the location's page
+$provider->reviews($location);                         // up to five
+$provider->writeUrl($location);
 ```
 
 Written from the Content API's reference and display requirements, read on 2026-10-08. **Not
