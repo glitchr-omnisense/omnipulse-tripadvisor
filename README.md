@@ -9,6 +9,37 @@ the former name).
 location's rating, its bubbles, its number of reviews, up to five reviews and the link to write
 one, through the Tripadvisor Content API.
 
+## Install and a first call
+
+```sh
+composer require omnipulse/tripadvisor
+```
+
+No account for this first call: the Content API's answer is recorded
+(`Omnipulse\Testing\RecordedHttpClient` answers in place of the API), so nothing leaves the process.
+A real call needs a Tripadvisor Content API key (an account on its developer portal).
+
+```php
+<?php
+
+require __DIR__.'/vendor/autoload.php';
+
+use Omnipulse\Model\Place;
+use Omnipulse\Tripadvisor\TripadvisorFactory;
+use Omnipulse\Testing\RecordedHttpClient;
+
+// the Content API's answer, recorded: nothing sent. HttpClient::create() (symfony/http-client) for a real call.
+$http = RecordedHttpClient::routes([
+    'GET /1234567/details' => '{"location_id": 1234567, "name": "Maison Érable", "web_url": "https://www.tripadvisor.fr/Restaurant_Review-g187147-d1234567-Reviews-Maison_Erable-Paris.html", "rating": 4.5, "num_reviews": "312"}',
+]);
+$tripadvisor = (new TripadvisorFactory($http))->create(['api_key' => 'recorded']);
+
+$rating = $tripadvisor->rating(new Place('1234567'));
+echo $rating->value, ' from ', $rating->count, " reviews\n";   // 4.5 from 312 reviews
+```
+
+With your credentials, through the family's registry:
+
 ```php
 use Omnipulse\Model\Place;
 use Omnipulse\Tripadvisor\TripadvisorFactory;
